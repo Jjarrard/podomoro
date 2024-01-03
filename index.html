@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Pomodoro Timer with Tasks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            background-color: #181616;
+            color: #333;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .timer {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .task-list {
+            text-align: left;
+            width: 300px;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        li:hover {
+            background-color: #565656;
+            color: whitesmoke;
+        }
+
+        li button {
+            background-color: transparent;
+            color: #ff6347;
+            border: none;
+            cursor: pointer;
+            transition: color 0.3s;
+            margin-left: 10px;
+        }
+
+        li button:hover {
+            color: #d32f2f;
+        }
+
+        #timer {
+            font-size: 4em;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            margin: 0 10px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .butt:hover {
+            background-color: #0056b3;
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            margin-right: 5px;
+            width: 180px;
+        }
+
+        button.taskInput {
+            padding: 8px 15px;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+
+        .taskInput {
+            margin-left: 0px;
+        }
+
+        input[type="number"] {
+            padding: 8px;
+            width: 60px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 5px;
+            margin-bottom: 10px;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        .toggle-dark {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .toggle-btn {
+            padding: 8px 15px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .toggle-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="timer">
+            <h1 id="timer">25:00</h1>
+            <input type="number" id="setTimer" placeholder="Set time (mins)" value=25>
+            <button id="updateTimer" class="butt">Update Timer</button>
+            <button id="startButton" class="butt">Start</button>
+            <button id="resetButton" class="butt">Reset</button>
+        </div>
+
+        <div class="task-list">
+            <h3>Task List</h3>
+
+            <input type="text" id="taskInput" placeholder="Add task...">
+            <button class="taskInput butt" onclick=" addTask()">Add Task</button>
+            <ul id="tasks"></ul>
+        </div>
+
+        <div class="toggle-dark">
+            <button id="darkModeToggle" class="toggle-btn" onclick="toggleDarkMode()">Dark Mode</button>
+        </div>
+    </div>
+
+    <script>
+        let timer;
+        let minutes = 25; // Initial Pomodoro length
+        let seconds = 0;
+        let isRunning = false;
+
+        const display = document.getElementById('timer');
+        const startButton = document.getElementById('startButton');
+        const resetButton = document.getElementById('resetButton');
+        const taskInput = document.getElementById('taskInput');
+        const taskList = document.getElementById('tasks');
+        const darkModeCheckbox = document.getElementById('darkMode');
+        const container = document.querySelector('.container');
+        const setTimerInput = document.getElementById('setTimer');
+        const updateTimerBtn = document.getElementById('updateTimer');
+
+        function updateDisplay() {
+            const displayMinutes = String(minutes).padStart(2, '0');
+            const displaySeconds = String(seconds).padStart(2, '0');
+            display.textContent = `${displayMinutes}:${displaySeconds}`;
+        }
+
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                timer = setInterval(() => {
+                    if (seconds > 0) {
+                        seconds--;
+                    } else if (minutes > 0) {
+                        seconds = 59;
+                        minutes--;
+                    } else {
+                        clearInterval(timer);
+                        isRunning = false;
+                        // Perform actions on timer completion (e.g., switch to break time)
+                        // You can add logic here for break time, long break, etc.
+                    }
+                    updateDisplay();
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            minutes = 25;
+            seconds = 0;
+            isRunning = false;
+            updateDisplay();
+        }
+
+        function addTask() {
+            const taskText = taskInput.value.trim();
+            if (taskText !== '') {
+                const taskItem = document.createElement('li');
+                taskItem.textContent = taskText;
+                const deleteButton = document.createElement('button');
+                deleteButton.id = 'Remove';
+                deleteButton.textContent = 'Remove';
+                deleteButton.onclick = function () {
+                    taskList.removeChild(taskItem);
+                };
+                taskItem.appendChild(deleteButton);
+                taskList.appendChild(taskItem);
+                taskInput.value = '';
+            }
+        }
+
+        function addTask() {
+            const taskText = taskInput.value.trim();
+            if (taskText !== '') {
+                const taskItem = document.createElement('li');
+                taskItem.textContent = taskText;
+                const deleteButton = document.createElement('button');
+                deleteButton.id = 'Remove';
+                deleteButton.textContent = 'Remove';
+                deleteButton.onclick = function () {
+                    taskList.removeChild(taskItem);
+                };
+                taskItem.appendChild(deleteButton);
+                taskList.appendChild(taskItem);
+                taskInput.value = '';
+            }
+        }
+
+        // Function to handle "Enter" key press in the task input field
+        taskInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+
+        function toggleDarkMode() {
+            if (darkModeCheckbox.checked) {
+                container.style.backgroundColor = '#333';
+                container.style.color = '#fff';
+            } else {
+                container.style.backgroundColor = '#fff';
+                container.style.color = '#333';
+            }
+        }
+
+        function updateTimer() {
+            const newTime = parseInt(setTimerInput.value);
+            if (!isNaN(newTime) && newTime > 0) {
+                minutes = newTime;
+                seconds = 0;
+                updateDisplay();
+            }
+        }
+
+        startButton.addEventListener('click', startTimer);
+        resetButton.addEventListener('click', resetTimer);
+        updateTimerBtn.addEventListener('click', updateTimer);
+
+        updateDisplay();
+
+        function toggleDarkMode() {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (darkModeToggle.textContent === 'Dark Mode') {
+                // Switch to dark mode
+                container.style.backgroundColor = '#333';
+                container.style.color = '#fff';
+                darkModeToggle.textContent = 'Light Mode';
+            } else {
+                // Switch to light mode
+                container.style.backgroundColor = '#fff';
+                container.style.color = '#333';
+                darkModeToggle.textContent = 'Dark Mode';
+            }
+        }
+    </script>
+</body>
+
+</html>
